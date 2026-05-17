@@ -1,2 +1,2 @@
-# sturevision_new
+# sturevision
 Student Revision Platform

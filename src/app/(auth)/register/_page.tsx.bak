@@ -1,0 +1,7 @@
+import { permanentRedirect } from "next/navigation";
+
+// Clerk requires <SignUp /> to live inside a catch-all route.
+// Redirect the bare /register path into [[...rest]] so Clerk is happy.
+export default function RegisterRedirect() {
+  permanentRedirect("/register/sign-up");
+}

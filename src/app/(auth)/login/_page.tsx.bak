@@ -1,0 +1,7 @@
+import { permanentRedirect } from "next/navigation";
+
+// Clerk requires <SignIn /> to live inside a catch-all route.
+// Redirect the bare /login path into [[...rest]] so Clerk is happy.
+export default function LoginRedirect() {
+  permanentRedirect("/login/sign-in");
+}
