@@ -17,6 +17,12 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-vars": "warn",
     },
   },
+  {
+    files: ["src/lib/socket-server.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

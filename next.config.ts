@@ -4,9 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["res.cloudinary.com", "img.clerk.com"],
   },
-  experimental: {
-    serverComponentsExternalPackages: ["mongoose", "pdf-parse"],
-  },
+  serverExternalPackages: ["mongoose", "pdf-parse"],
 };
 
 export default nextConfig;
