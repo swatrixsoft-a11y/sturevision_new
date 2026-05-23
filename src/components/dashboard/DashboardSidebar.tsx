@@ -14,6 +14,7 @@ import {
   Settings,
   Home,
   LogOut,
+  MessageSquare,
 } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { cn } from "@/utils/cn";
@@ -26,6 +27,7 @@ const navItems = [
   { label: "Scheduler", href: "/scheduler", icon: Calendar },
   { label: "Analytics", href: "/analytics", icon: BarChart2 },
   { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
+  { label: "Chat", href: "/chat", icon: MessageSquare },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 

@@ -18,6 +18,7 @@ const isProtectedRoute = createRouteMatcher([
   "/scheduler(.*)",
   "/analytics(.*)",
   "/leaderboard(.*)",
+  "/chat(.*)",
   "/settings(.*)",
 ]);
 
