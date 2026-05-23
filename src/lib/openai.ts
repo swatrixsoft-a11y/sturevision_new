@@ -1,9 +1,13 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { redis } from "./redis";
 
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+async function askGemini(prompt: string): Promise<string> {
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
 
 // --- AI MCQ Generation ---
 export async function generateMCQs(
@@ -15,13 +19,12 @@ export async function generateMCQs(
 ): Promise<MCQQuestion[]> {
   const cacheKey = `mcq:${subject}:${chapter}:${difficulty}:${content.slice(0, 100)}`;
 
-  // Check Redis cache first
   const cached = await redis.get(cacheKey);
   if (cached) {
     try {
       return JSON.parse(decodeURIComponent(cached));
     } catch {
-      // Cache miss or parse error — continue to generate
+      // Cache miss — continue to generate
     }
   }
 
@@ -35,7 +38,7 @@ ${content.slice(0, 3000)}
 Chapter: ${chapter}
 Difficulty: ${difficulty}
 
-Return a JSON array with this exact structure:
+Return ONLY a valid JSON array with this exact structure, no markdown, no explanation:
 [
   {
     "question": "Question text here?",
@@ -54,24 +57,17 @@ Rules:
 - Questions should test understanding, not just memorization
 - Return ONLY the JSON array, no other text`;
 
-  const response = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-    response_format: { type: "json_object" },
-  });
-
-  const rawContent = response.choices[0].message.content || "[]";
+  const rawContent = await askGemini(prompt);
 
   let questions: MCQQuestion[] = [];
   try {
-    const parsed = JSON.parse(rawContent);
+    const clean = rawContent.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
     questions = Array.isArray(parsed) ? parsed : parsed.questions || [];
   } catch {
     questions = [];
   }
 
-  // Cache for 24 hours
   if (questions.length > 0) {
     await redis.set(cacheKey, JSON.stringify(questions), 86400);
   }
@@ -92,30 +88,24 @@ Generate exactly ${count} flashcards from this content:
 ${content.slice(0, 3000)}
 """
 
-Return a JSON array:
+Return ONLY a valid JSON array, no markdown, no explanation:
 [
   {
     "front": "Question or term on front of card",
     "back": "Answer or definition on back of card",
     "topic": "topic name",
-    "difficulty": "easy" | "medium" | "hard"
+    "difficulty": "easy"
   }
 ]
 
-Make cards concise. Front should be a question or key term. Back should be the answer or explanation.
+difficulty must be one of: easy, medium, hard
 Return ONLY the JSON array.`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-    response_format: { type: "json_object" },
-  });
-
-  const rawContent = response.choices[0].message.content || "[]";
+  const rawContent = await askGemini(prompt);
 
   try {
-    const parsed = JSON.parse(rawContent);
+    const clean = rawContent.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
     return Array.isArray(parsed) ? parsed : parsed.flashcards || [];
   } catch {
     return [];
@@ -136,13 +126,7 @@ Create a concise bullet-point summary with:
 
 Keep it under 300 words. Use simple, clear language.`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.5,
-  });
-
-  return response.choices[0].message.content || "";
+  return await askGemini(prompt);
 }
 
 export interface MCQQuestion {
