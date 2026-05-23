@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
-import { Menu, X, Zap } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { cn } from "@/utils/cn";
 
 const navLinks = [
@@ -33,14 +34,7 @@ export default function Navbar() {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-600/30">
-              <Zap size={16} className="text-white" />
-            </div>
-            <span className="font-black text-lg text-white">
-              Stur<span className="text-indigo-400">evision</span>
-            </span>
-          </Link>
+          <BrandLogo size="sm" />
 
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (

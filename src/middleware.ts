@@ -26,17 +26,12 @@ export default clerkMiddleware(async (auth, request) => {
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
 
-  // Authenticated user hitting login/register → send to dashboard
-  if (userId && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
   // Protected API routes → 401 instead of redirect (preserves POST body)
   if (isApi && !isPublicRoute(request) && !userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Protected pages → let Clerk handle redirect to login
+  // Protected pages → Clerk handles redirect to /login (via NEXT_PUBLIC_CLERK_SIGN_IN_URL)
   if (isProtectedRoute(request)) {
     await auth.protect();
   }

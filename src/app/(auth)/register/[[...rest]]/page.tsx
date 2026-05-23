@@ -1,6 +1,5 @@
 import { SignUp } from "@clerk/nextjs";
-import { Zap } from "lucide-react";
-import Link from "next/link";
+import BrandLogo from "@/components/brand/BrandLogo";
 
 export default function RegisterPage() {
   return (
@@ -10,19 +9,12 @@ export default function RegisterPage() {
 
       <div className="relative z-10 w-full max-w-md px-4 py-8">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-              <Zap size={20} className="text-white" />
-            </div>
-            <span className="font-bold text-2xl">
-              <span className="text-white">Stur</span>
-              <span className="gradient-text">evision</span>
-            </span>
-          </Link>
+          <BrandLogo size="md" className="mb-4 justify-center" />
           <p className="text-slate-500 text-sm">Join 500+ students who study smarter.</p>
         </div>
 
         <SignUp
+          fallbackRedirectUrl="/dashboard"
           appearance={{
             elements: {
               rootBox: "w-full",

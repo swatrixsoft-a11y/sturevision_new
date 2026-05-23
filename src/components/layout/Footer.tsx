@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Zap } from "lucide-react";
+import BrandLogo from "@/components/brand/BrandLogo";
 
 const links = {
   Product: [
@@ -26,14 +26,7 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                <Zap size={16} className="text-white" />
-              </div>
-              <span className="font-black text-lg text-white">
-                Stur<span className="text-indigo-400">evision</span>
-              </span>
-            </Link>
+            <BrandLogo size="sm" className="mb-4" />
             <p className="text-slate-500 text-sm leading-relaxed">
               India&apos;s AI-powered revision engine for CBSE &amp; JEE students. Study less. Remember more.
             </p>

@@ -3,7 +3,7 @@
 import { Bell, Search } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
-export default function DashboardTopbar() {
+export default function DashboardTopbar({ streak = 0 }: { streak?: number }) {
   return (
     <header className="sticky top-0 z-30 bg-[#080b14]/90 backdrop-blur-xl border-b border-white/5 h-16 flex items-center px-4 md:px-8 gap-4">
       {/* Search */}
@@ -29,7 +29,7 @@ export default function DashboardTopbar() {
         {/* Streak badge */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
           <span className="text-sm">🔥</span>
-          <span className="text-orange-400 font-bold text-sm">0</span>
+          <span className="text-orange-400 font-bold text-sm">{streak}</span>
           <span className="text-slate-600 text-xs">days</span>
         </div>
 

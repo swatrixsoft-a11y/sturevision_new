@@ -12,10 +12,10 @@ import {
   Trophy,
   Upload,
   Settings,
-  Zap,
   Home,
   LogOut,
 } from "lucide-react";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { cn } from "@/utils/cn";
 
 const navItems = [
@@ -38,15 +38,7 @@ export default function DashboardSidebar() {
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 flex-col bg-[#0a0d1a] border-r border-white/5 z-40">
         {/* Logo — links to landing page */}
         <div className="p-6 border-b border-white/5">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-              <Zap size={16} className="text-white" />
-            </div>
-            <span className="font-bold text-lg">
-              <span className="text-white">Stur</span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-blue-400">evision</span>
-            </span>
-          </Link>
+          <BrandLogo size="sm" />
         </div>
 
         {/* Navigation */}
