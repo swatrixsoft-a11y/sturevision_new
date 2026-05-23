@@ -14,13 +14,14 @@ export default function DashboardTopbar() {
             type="text"
             placeholder="Search subjects, chapters..."
             className="w-full bg-white/5 border border-white/5 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-400 placeholder:text-slate-700 focus:outline-none focus:border-violet-500/30 transition-colors"
+            suppressHydrationWarning
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3 ml-auto">
         {/* Notifications */}
-        <button className="relative p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+        <button className="relative p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5" suppressHydrationWarning>
           <Bell size={18} className="text-slate-500" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full" />
         </button>
