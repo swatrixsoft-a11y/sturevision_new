@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { authedFetch } from "@/lib/authedFetch";
 
 declare global {
   interface Window {
@@ -33,6 +35,7 @@ interface UsePaymentOptions {
 
 export function usePayment({ onSuccess, onError }: UsePaymentOptions = {}) {
   const [loading, setLoading] = useState(false);
+  const { getToken } = useAuth();
 
   async function pay(planId: PlanId, userEmail?: string, userName?: string) {
     setLoading(true);
@@ -41,7 +44,7 @@ export function usePayment({ onSuccess, onError }: UsePaymentOptions = {}) {
       if (!loaded) throw new Error("Razorpay SDK failed to load. Check your internet connection.");
 
       // Create order on server
-      const res = await fetch("/api/payment/create-order", {
+      const res = await authedFetch(getToken, "/api/payment/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId }),
@@ -95,7 +98,7 @@ export function usePayment({ onSuccess, onError }: UsePaymentOptions = {}) {
           // Payment captured — webhook will activate subscription
           // Optionally verify on client side too
           try {
-            await fetch("/api/payment/verify", {
+            await authedFetch(getToken, "/api/payment/verify", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

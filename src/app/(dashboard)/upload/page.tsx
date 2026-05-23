@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { authedFetch } from "@/lib/authedFetch";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +32,7 @@ const GENERATION_STEPS = [
 
 export default function UploadPage() {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [pastedText, setPastedText] = useState("");
@@ -81,7 +84,7 @@ export default function UploadPage() {
         content = await readFileText(file);
       }
 
-      const res = await fetch("/api/quiz/generate", {
+      const res = await authedFetch(getToken, "/api/quiz/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, subject, chapter, count: questionCount, difficulty }),

@@ -1,23 +1,14 @@
-"use client";
-
-import dynamic from "next/dynamic";
+import { SignIn } from "@clerk/nextjs";
 import { Zap } from "lucide-react";
 import Link from "next/link";
-
-const SignIn = dynamic(
-  () => import("@clerk/nextjs").then((mod) => mod.SignIn),
-  { ssr: false }
-);
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#080b14] flex items-center justify-center relative overflow-hidden">
-      {/* Background glows */}
       <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md px-4">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center shadow-lg shadow-violet-500/30">

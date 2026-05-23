@@ -1,12 +1,18 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { redis } from "./redis";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-async function askGemini(prompt: string): Promise<string> {
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+export type Difficulty = "easy" | "medium" | "hard";
+
+async function askGroq(prompt: string): Promise<string> {
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.1-8b-instant",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.7,
+    max_tokens: 4096,
+  });
+  return completion.choices[0]?.message?.content ?? "";
 }
 
 // --- AI MCQ Generation ---
@@ -15,7 +21,7 @@ export async function generateMCQs(
   subject: string,
   chapter: string,
   count: number = 10,
-  difficulty: "easy" | "medium" | "hard" = "medium"
+  difficulty: Difficulty = "medium"
 ): Promise<MCQQuestion[]> {
   const cacheKey = `mcq:${subject}:${chapter}:${difficulty}:${content.slice(0, 100)}`;
 
@@ -38,7 +44,7 @@ ${content.slice(0, 3000)}
 Chapter: ${chapter}
 Difficulty: ${difficulty}
 
-Return ONLY a valid JSON array with this exact structure, no markdown, no explanation:
+Return ONLY a valid JSON array. No markdown, no explanation, no extra text:
 [
   {
     "question": "Question text here?",
@@ -54,10 +60,9 @@ Rules:
 - correctAnswer is the index (0-3) of the correct option
 - Make options plausible and not obviously wrong
 - Explanation should be 1-2 sentences
-- Questions should test understanding, not just memorization
 - Return ONLY the JSON array, no other text`;
 
-  const rawContent = await askGemini(prompt);
+  const rawContent = await askGroq(prompt);
 
   let questions: MCQQuestion[] = [];
   try {
@@ -88,7 +93,7 @@ Generate exactly ${count} flashcards from this content:
 ${content.slice(0, 3000)}
 """
 
-Return ONLY a valid JSON array, no markdown, no explanation:
+Return ONLY a valid JSON array. No markdown, no explanation:
 [
   {
     "front": "Question or term on front of card",
@@ -101,7 +106,7 @@ Return ONLY a valid JSON array, no markdown, no explanation:
 difficulty must be one of: easy, medium, hard
 Return ONLY the JSON array.`;
 
-  const rawContent = await askGemini(prompt);
+  const rawContent = await askGroq(prompt);
 
   try {
     const clean = rawContent.replace(/```json|```/g, "").trim();
@@ -126,7 +131,7 @@ Create a concise bullet-point summary with:
 
 Keep it under 300 words. Use simple, clear language.`;
 
-  return await askGemini(prompt);
+  return await askGroq(prompt);
 }
 
 export interface MCQQuestion {
@@ -135,12 +140,12 @@ export interface MCQQuestion {
   correctAnswer: number;
   explanation: string;
   topic: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: Difficulty;
 }
 
 export interface FlashcardData {
   front: string;
   back: string;
   topic: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: Difficulty;
 }

@@ -1,13 +1,6 @@
-"use client";
-
-import dynamic from "next/dynamic";
+import { SignUp } from "@clerk/nextjs";
 import { Zap } from "lucide-react";
 import Link from "next/link";
-
-const SignUp = dynamic(
-  () => import("@clerk/nextjs").then((mod) => mod.SignUp),
-  { ssr: false }
-);
 
 export default function RegisterPage() {
   return (

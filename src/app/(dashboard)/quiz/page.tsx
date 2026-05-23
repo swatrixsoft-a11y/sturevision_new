@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { authedFetch } from "@/lib/authedFetch";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, ChevronRight, Brain, Zap, Target } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -27,6 +29,7 @@ const DIFFICULTY_COLOR = {
 export default function QuizPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { getToken } = useAuth();
   const sessionId = searchParams.get("session");
 
   const [quizState, setQuizState] = useState<QuizState>("loading");
@@ -94,7 +97,7 @@ export default function QuizPage() {
       // Submit
       setQuizState("finished");
       try {
-        const res = await fetch("/api/quiz/submit", {
+        const res = await authedFetch(getToken, "/api/quiz/submit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionId, answers, timeTaken: questionTimes }),

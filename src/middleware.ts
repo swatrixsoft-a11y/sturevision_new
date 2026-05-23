@@ -7,34 +7,44 @@ const isPublicRoute = createRouteMatcher([
   "/register(.*)",
   "/api/webhook(.*)",
   "/api/payment/webhook(.*)",
+  "/api/parse-pdf",
 ]);
 
-const isAuthRoute = createRouteMatcher(["/login(.*)", "/register(.*)"]);
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/upload(.*)",
+  "/quiz(.*)",
+  "/flashcards(.*)",
+  "/scheduler(.*)",
+  "/analytics(.*)",
+  "/leaderboard(.*)",
+  "/settings(.*)",
+]);
 
 export default clerkMiddleware(async (auth, request) => {
   const { userId } = await auth();
-  const isApi = request.nextUrl.pathname.startsWith("/api/");
+  const { pathname } = request.nextUrl;
+  const isApi = pathname.startsWith("/api/");
 
-  // Redirect authenticated users away from login/register
-  if (userId && isAuthRoute(request)) {
+  // Authenticated user hitting login/register → send to dashboard
+  if (userId && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  if (!isPublicRoute(request)) {
-    if (isApi) {
-      // Never redirect API routes — return 401 so fetch callers handle it correctly
-      if (!userId) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    } else {
-      await auth.protect({ unauthenticatedUrl: new URL("/login", request.url).toString() });
-    }
+  // Protected API routes → 401 instead of redirect (preserves POST body)
+  if (isApi && !isPublicRoute(request) && !userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Protected pages → let Clerk handle redirect to login
+  if (isProtectedRoute(request)) {
+    await auth.protect();
   }
 });
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    String.raw`/((?!_next|[^?]*\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)`,
     "/(api|trpc)(.*)",
   ],
 };
