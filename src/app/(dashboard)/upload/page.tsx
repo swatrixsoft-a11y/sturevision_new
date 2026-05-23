@@ -492,6 +492,18 @@ Tip: More content = better quality questions. Aim for at least 200 words."
 }
 
 async function readFileText(file: File): Promise<string> {
+  if (file.type === "application/pdf") {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/parse-pdf", { method: "POST", body: form });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to extract text from PDF");
+    }
+    const { text } = await res.json();
+    return text as string;
+  }
+
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => resolve(e.target?.result as string || "");
