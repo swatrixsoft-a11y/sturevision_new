@@ -1,4 +1,3 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import {
   Brain,
@@ -9,6 +8,7 @@ import {
   TrendingUp,
   Target,
 } from "lucide-react";
+import UserGreeting from "@/components/dashboard/UserGreeting";
 
 const quickActions = [
   {
@@ -50,18 +50,11 @@ const quickActions = [
 ];
 
 export default async function DashboardPage() {
-  const user = await currentUser();
-
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Welcome header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-black text-white">
-          Welcome back, {user?.firstName || "Student"} 👋
-        </h1>
-        <p className="text-slate-500 mt-1">
-          Ready to revise? Your AI memory engine is waiting.
-        </p>
+        <UserGreeting />
       </div>
 
       {/* Stats row */}

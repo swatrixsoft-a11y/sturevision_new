@@ -46,7 +46,10 @@ export function usePayment({ onSuccess, onError }: UsePaymentOptions = {}) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId }),
       });
-      if (!res.ok) throw new Error("Could not create payment order.");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `Payment error (${res.status})`);
+      }
       const order = await res.json();
 
       // Open Razorpay modal — UPI shown first

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, Zap, Loader2 } from "lucide-react";
+import { CheckCircle, Zap, Loader2, Crown } from "lucide-react";
 import { usePayment, type PlanId } from "@/hooks/usePayment";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -28,15 +28,31 @@ const PRO_FEATURES = [
 
 export default function PricingSection() {
   const [yearly, setYearly] = useState(false);
+  const [activePlan, setActivePlan] = useState<string>("free");
+  const [subLoading, setSubLoading] = useState(true);
   const router = useRouter();
   const { isSignedIn, user } = useUser();
   const { pay, loading } = usePayment({
     onSuccess: () => {
       toast.success("🎉 Payment successful! Pro is now active.");
+      setActivePlan("pro");
       setTimeout(() => router.push("/dashboard"), 1500);
     },
     onError: (msg) => toast.error(msg),
   });
+
+  useEffect(() => {
+    if (!isSignedIn) { setSubLoading(false); return; }
+    fetch("/api/user/subscription")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.plan && data.status === "active") setActivePlan(data.plan);
+      })
+      .catch(() => {})
+      .finally(() => setSubLoading(false));
+  }, [isSignedIn]);
+
+  const isPro = activePlan === "pro" || activePlan === "premium";
 
   function handleUpgrade() {
     if (!isSignedIn) {
@@ -178,17 +194,24 @@ export default function PricingSection() {
               ))}
             </ul>
 
-            <button
-              onClick={handleUpgrade}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white text-indigo-600 font-bold text-base hover:bg-indigo-50 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <><Loader2 size={16} className="animate-spin" /> Opening payment...</>
-              ) : (
-                <><Zap size={16} /> Pay with UPI / Card — {yearly ? "₹999/yr" : "₹99/mo"}</>
-              )}
-            </button>
+            {isPro ? (
+              <div className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-500 text-white font-bold text-base">
+                <Crown size={16} />
+                Pro Active — Enjoy unlimited AI!
+              </div>
+            ) : (
+              <button
+                onClick={handleUpgrade}
+                disabled={loading || subLoading}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white text-indigo-600 font-bold text-base hover:bg-indigo-50 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <><Loader2 size={16} className="animate-spin" /> Opening payment...</>
+                ) : (
+                  <><Zap size={16} /> Pay with UPI / Card — {yearly ? "₹999/yr" : "₹99/mo"}</>
+                )}
+              </button>
+            )}
 
             {/* UPI logos */}
             <div className="mt-4 flex items-center justify-center gap-3">
