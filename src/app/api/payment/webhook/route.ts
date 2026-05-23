@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
+import { Payment } from "@/models/Payment";
 
-// Razorpay webhook — verify signature and activate subscription
+const PLAN_MAP: Record<string, { plan: string; months: number }> = {
+  pro_monthly: { plan: "pro", months: 1 },
+  pro_yearly: { plan: "pro", months: 12 },
+  premium_monthly: { plan: "premium", months: 1 },
+  premium_yearly: { plan: "premium", months: 12 },
+};
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text();
     const signature = req.headers.get("x-razorpay-signature") || "";
 
-    const secret = process.env.RAZORPAY_KEY_SECRET!;
     const expectedSig = crypto
-      .createHmac("sha256", secret)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
       .update(body)
       .digest("hex");
 
@@ -22,31 +28,46 @@ export async function POST(req: NextRequest) {
     const event = JSON.parse(body);
 
     if (event.event === "payment.captured") {
-      const { notes } = event.payload.payment.entity;
+      const entity = event.payload.payment.entity;
+      const { notes, id: paymentId, order_id: orderId, amount, currency } = entity;
       const { userId, planId } = notes || {};
 
       if (userId && planId) {
-        await connectDB();
-
-        const planMap: Record<string, { plan: string; months: number }> = {
-          pro_monthly: { plan: "pro", months: 1 },
-          pro_yearly: { plan: "pro", months: 12 },
-          premium_monthly: { plan: "premium", months: 1 },
-          premium_yearly: { plan: "premium", months: 12 },
-        };
-
-        const { plan, months } = planMap[planId] || { plan: "pro", months: 1 };
+        const { plan, months } = PLAN_MAP[planId] || { plan: "pro", months: 1 };
         const expiresAt = new Date();
         expiresAt.setMonth(expiresAt.getMonth() + months);
 
+        await connectDB();
+
+        // Save payment transaction
+        await Payment.findOneAndUpdate(
+          { razorpayOrderId: orderId },
+          {
+            userId,
+            razorpayOrderId: orderId,
+            razorpayPaymentId: paymentId,
+            planId,
+            plan,
+            amount,
+            currency,
+            status: "captured",
+            expiresAt,
+          },
+          { upsert: true, new: true }
+        );
+
+        // Update user subscription
         await User.findOneAndUpdate(
           { clerkId: userId },
           {
-            "subscription.plan": plan,
-            "subscription.status": "active",
-            "subscription.startDate": new Date(),
-            "subscription.expiresAt": expiresAt,
-          }
+            $set: {
+              "subscription.plan": plan,
+              "subscription.status": "active",
+              "subscription.startDate": new Date(),
+              "subscription.expiresAt": expiresAt,
+            },
+          },
+          { upsert: true }
         );
       }
     }
